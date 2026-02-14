@@ -1,14 +1,12 @@
 
 document.addEventListener('DOMContentLoaded', () => {
-    // ================================
-    // Navigation Functionality
-    // ================================
+
     const navbar = document.querySelector('.navbar');
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
     const navLinksItems = document.querySelectorAll('.nav-links a');
 
-    // Scroll effect for navbar
+  
     window.addEventListener('scroll', () => {
         if (window.scrollY > 100) {
             navbar.classList.add('scrolled');
@@ -16,17 +14,17 @@ document.addEventListener('DOMContentLoaded', () => {
             navbar.classList.remove('scrolled');
         }
         
-        // Update active navigation link
+      
         updateActiveNavLink();
     });
 
-    // Mobile menu toggle
+   
     hamburger.addEventListener('click', () => {
         hamburger.classList.toggle('active');
         navLinks.classList.toggle('active');
     });
 
-    // Close mobile menu when clicking a link
+  
     navLinksItems.forEach(link => {
         link.addEventListener('click', () => {
             hamburger.classList.remove('active');
@@ -34,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Update active navigation link based on scroll position
     function updateActiveNavLink() {
         const sections = document.querySelectorAll('section');
         let current = '';
@@ -55,9 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ================================
-    // Smooth Scrolling
-    // ================================
+
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -87,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('visible');
                 
-                // Animate counter numbers when visible
+               
                 if (entry.target.classList.contains('about-stats')) {
                     animateCounters();
                 }
@@ -95,15 +90,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, observerOptions);
 
-    // Add fade-in class to sections
     document.querySelectorAll('section').forEach(section => {
         section.classList.add('fade-in');
         observer.observe(section);
     });
 
-    // ================================
-    // Counter Animation
-    // ================================
     function animateCounters() {
         const counters = document.querySelectorAll('.stat-number');
         
@@ -127,9 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ================================
-    // Project Cards Hover Effect
-    // ================================
+
     const projectCards = document.querySelectorAll('.project-card');
     
     projectCards.forEach(card => {
@@ -142,9 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ================================
-    // Skill Items Animation
-    // ================================
+
     const skillItems = document.querySelectorAll('.skill-item');
     
     skillItems.forEach((item, index) => {
@@ -158,9 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, index * 100);
     });
 
-    // ================================
-    // Contact Form Handling
-    // ================================
     const contactForm = document.getElementById('contactForm');
     
     contactForm.addEventListener('submit', (e) => {
@@ -174,9 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         contactForm.reset();
     });
 
-    // ================================
-    // Form Input Animation
-    // ================================
+
     const formInputs = document.querySelectorAll('.form-group input, .form-group textarea');
     
     formInputs.forEach(input => {
@@ -191,9 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ================================
-    // Scroll to Top Button
-    // ================================
+
     const scrollTopBtn = document.createElement('button');
     scrollTopBtn.classList.add('scroll-top-btn');
     scrollTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
@@ -235,27 +215,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ================================
-    // Typing Effect for Hero Title
-    // ================================
     const heroTitle = document.querySelector('.hero-title');
-    const titleText = heroTitle.textContent;
-    heroTitle.textContent = '';
-    let charIndex = 0;
+    if (heroTitle) {
+        const titleText = heroTitle.textContent;
+        heroTitle.textContent = '';
+        let charIndex = 0;
 
-    function typeTitle() {
-        if (charIndex < titleText.length) {
-            heroTitle.textContent += titleText.charAt(charIndex);
-            charIndex++;
-            setTimeout(typeTitle, 100);
+        function typeTitle() {
+            if (charIndex < titleText.length) {
+                heroTitle.textContent += titleText.charAt(charIndex);
+                charIndex++;
+                setTimeout(typeTitle, 100);
+            }
         }
+
+        setTimeout(typeTitle, 1500);
     }
 
-    setTimeout(typeTitle, 1500);
 
-    // ================================
-    // Parallax Effect (Subtle)
-    // ================================
     window.addEventListener('scroll', () => {
         const scrolled = window.pageYOffset;
         const hero = document.querySelector('.hero');
@@ -264,6 +241,108 @@ document.addEventListener('DOMContentLoaded', () => {
             hero.style.backgroundPositionY = scrolled * 0.5 + 'px';
         }
     });
+
+    
+    (function initChatbot() {
+        const root = document.querySelector('.chatbot');
+        if (!root) return;
+
+        const toggleBtn = root.querySelector('.chatbot-toggle');
+        const closeBtn = root.querySelector('.chatbot-close');
+        const messages = root.querySelector('.chatbot-messages');
+        const form = root.querySelector('.chatbot-input');
+        const input = form ? form.querySelector('input') : null;
+
+        const open = () => { root.classList.add('open'); input && input.focus(); };
+        const close = () => { root.classList.remove('open'); };
+        toggleBtn && toggleBtn.addEventListener('click', () => {
+            root.classList.contains('open') ? close() : open();
+        });
+        closeBtn && closeBtn.addEventListener('click', close);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && root.classList.contains('open')) close();
+        });
+
+        const scrollToBottom = () => {
+            if (!messages) return;
+            messages.scrollTop = messages.scrollHeight;
+        };
+
+        const appendMessage = (from, text) => {
+            if (!messages) return;
+            const el = document.createElement('div');
+            el.className = `msg ${from}`;
+            el.textContent = text;
+            messages.appendChild(el);
+            scrollToBottom();
+        };
+
+        const normalize = (s) => s.toLowerCase();
+        const includesAny = (s, arr) => arr.some(k => s.includes(k));
+
+        const botReply = (userText) => {
+            const t = normalize(userText);
+
+            if (includesAny(t, ['hello', 'hi', 'hey', 'kumusta', 'good morning', 'good afternoon'])) {
+                return "Hello! I'm a simple assistant for Francis's portfolio. Ask me about projects, skills, or how to contact.";
+            }
+
+            if (includesAny(t, ['who are you', 'about you', 'about me', 'who is francis', 'introduce'])) {
+                return "Francis G. Tadije is a 23-year-old IT student at the University of Eastern Pangasinan, passionate about tech and building useful software.";
+            }
+
+            if (includesAny(t, ['project', 'portfolio', 'work', 'recent'])) {
+                return "You can view projects in the Projects section. Try the 'My Portfolio' project link for a live demo.";
+            }
+
+            if (includesAny(t, ['skill', 'tech', 'technology', 'stack', 'language'])) {
+                return "Core skills include HTML, CSS, JavaScript, and Python, plus soft skills like communication, problem solving, and leadership.";
+            }
+
+            if (includesAny(t, ['contact', 'email', 'phone', 'call', 'reach', 'message'])) {
+                return "Contact details: Email: francistadije0601@gmail.com | Phone: +63 9101132283. You can also use the Contact form on this page.";
+            }
+
+            if (includesAny(t, ['facebook', 'github', 'instagram', 'tiktok', 'social'])) {
+                return "Socials: GitHub @ francistadije0601-alt, Facebook: francis.tadije, Instagram: _franzz.rar, plus TikTok linked in Contact.";
+            }
+
+            if (includesAny(t, ['where', 'location', 'based'])) {
+                return "Based in Banaur, Laoac, Pangasinan.";
+            }
+
+            if (includesAny(t, ['experience', 'years', 'clients'])) {
+                return "Experience highlights: 5+ years, 50+ projects completed, 30+ happy clients (as shown in About).";
+            }
+
+            return "I didn't quite get that. You can ask about: projects, skills, contact info, socials, or location.";
+        };
+
+        // Welcome message
+        if (messages && !messages.hasChildNodes()) {
+            appendMessage('bot', "Hi my name is Chi how can i help you? Try asking: 'What are your skills?' or 'How can I contact you?'");
+        }
+
+        form && form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = (input && input.value.trim()) || '';
+            if (!text) return;
+            appendMessage('user', text);
+            if (input) input.value = '';
+
+            // Typing indicator
+            const typing = document.createElement('div');
+            typing.className = 'msg bot';
+            typing.textContent = 'Typing…';
+            messages.appendChild(typing);
+            scrollToBottom();
+
+            setTimeout(() => {
+                typing.remove();
+                appendMessage('bot', botReply(text));
+            }, Math.min(1200, Math.max(300, text.length * 30)));
+        });
+    })();
 
     console.log('Portfolio website loaded successfully!');
 });
