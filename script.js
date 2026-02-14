@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
 
     const navbar = document.querySelector('.navbar');
@@ -14,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
             navbar.classList.remove('scrolled');
         }
         
-      
+        
         updateActiveNavLink();
     });
 
@@ -243,6 +242,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     
+    // ================================
+    // AI Chatbot with Enhanced Q&A
+    // ================================
     (function initChatbot() {
         const root = document.querySelector('.chatbot');
         if (!root) return;
@@ -268,10 +270,11 @@ document.addEventListener('DOMContentLoaded', () => {
             messages.scrollTop = messages.scrollHeight;
         };
 
-        const appendMessage = (from, text) => {
+        const appendMessage = (from, text, isAI = false) => {
             if (!messages) return;
             const el = document.createElement('div');
             el.className = `msg ${from}`;
+            if (isAI) el.classList.add('ai-response');
             el.textContent = text;
             messages.appendChild(el);
             scrollToBottom();
@@ -280,50 +283,221 @@ document.addEventListener('DOMContentLoaded', () => {
         const normalize = (s) => s.toLowerCase();
         const includesAny = (s, arr) => arr.some(k => s.includes(k));
 
-        const botReply = (userText) => {
+        // AI Configuration
+        const USE_AI = true;
+        const AI_CONTEXT = `You are Chi, a friendly AI assistant for Francis G. Tadije's portfolio website. 
+        Francis G. Tadije is a 23-year-old IT student at University of Eastern Pangasinan (UEP), Philippines.
+        He's studying Bachelor of Science in Information Technology (BSIT).
+        His skills include: HTML, CSS, JavaScript, Python, Communication, Problem Solving, Leadership.
+        Projects: His portfolio website built with HTML, CSS, JavaScript.
+        Contact: francistadije0601@gmail.com | Phone: +63 9101132283
+        Location: Banaur, Laoac, Pangasinan, Philippines
+        Social: GitHub: francistadije0601-alt, Facebook: francis.tadije, Instagram: _franzz.rar
+        He's an intern student with 5 years experience, 50 projects completed, 30 happy clients.
+        Be helpful, concise, and friendly. Keep responses short (2-3 sentences max).`;
+
+        // Enhanced Q&A Knowledge Base
+        const knowledgeBase = {
+            // Greetings
+            greetings: {
+                keywords: ['hello', 'hi', 'hey', 'kumusta', 'good morning', 'good afternoon', 'good evening', 'sup', 'what\'s up', 'hi there', 'greetings'],
+                response: "Hello! I'm Chi, Francis's AI assistant. Ask me anything about his portfolio, skills, projects, or how to contact him!"
+            },
+            // About Francis
+            about: {
+                keywords: ['who are you', 'about you', 'about me', 'who is francis', 'introduce', 'tell me about', 'who is this'],
+                response: "Francis G. Tadije is a 23-year-old IT student at University of Eastern Pangasinan. He's passionate about technology, web development, and building useful software solutions."
+            },
+            // Age
+            age: {
+                keywords: ['age', 'how old', 'old are you', 'birthday', 'year born', 'years old'],
+                response: "Francis is 23 years old. He's a young and enthusiastic IT student eager to learn and grow in the tech industry."
+            },
+            // Education
+            education: {
+                keywords: ['education', 'school', 'university', 'college', 'studying', 'degree', 'course', 'uep', 'pangasinan state university', 'bsit', 'intern'],
+                response: "Francis is studying Bachelor of Science in Information Technology (BSIT) at University of Eastern Pangasinan. He's currently an intern student gaining practical experience."
+            },
+            // Projects
+            projects: {
+                keywords: ['project', 'projects', 'portfolio', 'work', 'recent', 'built', 'create', 'made', 'demo'],
+                response: "Check out the Projects section! His main project is this portfolio website built with HTML, CSS, and JavaScript. Visit the live demo to see more!"
+            },
+            // Skills
+            skills: {
+                keywords: ['skill', 'skills', 'tech', 'technology', 'stack', 'language', 'programming', 'know', 'expertise', 'technologies'],
+                response: "Technical Skills: HTML, CSS, JavaScript, Python | Soft Skills: Communication, Problem Solving, Leadership. He's always learning new technologies!"
+            },
+            // Specific programming languages
+            html: {
+                keywords: ['html', 'hypertext markup', 'markup'],
+                response: "Francis is proficient in HTML5! He uses it to create semantic, accessible web pages. Check out his portfolio to see his HTML skills in action."
+            },
+            css: {
+                keywords: ['css', 'styling', 'style', 'stylesheets'],
+                response: "Francis knows CSS3 including Flexbox, Grid, and animations! He created this beautiful portfolio with custom CSS styling."
+            },
+            javascript: {
+                keywords: ['javascript', 'js', 'scripting', 'ecmascript'],
+                response: "JavaScript is one of Francis's strengths! He uses it to create interactive features like this chatbot, smooth scrolling, and dynamic content."
+            },
+            python: {
+                keywords: ['python', 'py', 'python programming'],
+                response: "Francis has Python skills! He's learning Python for backend development, automation, and data-related projects."
+            },
+            // Contact
+            contact: {
+                keywords: ['contact', 'email', 'phone', 'call', 'reach', 'message', 'hire', 'reach out', 'connect'],
+                response: "Contact Francis: Email: francistadije0601@gmail.com | Phone: +63 9101132283 | You can also use the Contact form on this page!"
+            },
+            // Social Media
+            social: {
+                keywords: ['facebook', 'github', 'instagram', 'tiktok', 'social', 'social media', 'linkedin', 'follow'],
+                response: "Follow Francis: GitHub: @francistadije0601-alt | Facebook: francis.tadije | Instagram: @_franzz.rar | TikTok linked in Contact section!"
+            },
+            github: {
+                keywords: ['github', 'repo', 'repository', 'code', 'repositories', 'gitlab', 'bitbucket'],
+                response: "Check out Francis's GitHub: github.com/francistadije0601-alt! He has several projects and is actively coding."
+            },
+            // Location
+            location: {
+                keywords: ['where', 'location', 'based', 'live', 'address', 'from', 'residence'],
+                response: "Francis is based in Banaur, Laoac, Pangasinan, Philippines. He's proud to be from the beautiful Ilocos Region!"
+            },
+            pangasinan: {
+                keywords: ['pangasinan', 'ilocos', 'laoac', 'banaur', 'philippines', 'ph'],
+                response: "Francis is from Pangasinan, specifically Banaur, Laoac. It's a beautiful province in the Ilocos Region of the Philippines known for its beaches and history!"
+            },
+            // Experience
+            experience: {
+                keywords: ['experience', 'years', 'clients', 'worked', 'professional'],
+                response: "Francis has completed 50+ projects with 30+ happy clients. He's an intern student gaining real-world experience!"
+            },
+            // Availability
+            availability: {
+                keywords: ['available', 'hiring', 'job', 'work', 'internship', 'freelance', 'open to work', 'looking for', 'employment', 'vacant'],
+                response: "Francis is currently an intern student but open to opportunities! Contact him to discuss potential collaborations or projects."
+            },
+            // Goals
+            goals: {
+                keywords: ['goal', 'goals', 'future', 'career', 'aspiration', 'dream', 'ambition', 'plan'],
+                response: "Francis aims to become a full-stack developer and contribute to innovative tech solutions. He's focused on learning and growing in the IT field!"
+            },
+            // Hobbies
+            hobbies: {
+                keywords: ['hobby', 'hobbies', 'interest', 'interests', 'free time', 'like to do', 'enjoy', 'passion'],
+                response: "Francis loves coding, learning new technologies, and building projects. He also enjoys gaming and exploring tech trends!"
+            },
+            // Languages spoken
+            languages: {
+                keywords: ['language', 'speak', 'english', 'tagalog', 'filipino', 'ilocano', 'native'],
+                response: "Francis can communicate in English, Filipino (Tagalog), and Ilocano! He's comfortable working in multilingual environments."
+            },
+            // Thank you
+            thanks: {
+                keywords: ['thanks', 'thank you', 'thx', 'appreciate', 'grateful', 'ty', 'much appreciated'],
+                response: "You're welcome! Feel free to ask if you have more questions about Francis or his work!"
+            },
+            // Help
+            help: {
+                keywords: ['help', 'can you', 'what can you', 'commands', 'menu', 'options', 'assistant'],
+                response: "I can help you learn about: Francis (about, age, education), Skills (HTML, CSS, JS, Python), Projects, Contact info, Social media, Location, Availability, and more! Just ask!"
+            },
+            // Website
+            website: {
+                keywords: ['website', 'site', 'web', 'this page', 'this site', 'portfolio site'],
+                response: "This is Francis's personal portfolio website! It showcases his skills, projects, and contact information. Feel free to explore all sections!"
+            },
+            // Name
+            name: {
+                keywords: ['name', 'full name', 'your name', 'francis', 'tadije'],
+                response: "His name is Francis G. Tadije! He's an IT student and the creator of this awesome portfolio website."
+            }
+        };
+
+        // Find matching response from knowledge base
+        const findKnowledgeResponse = (userText) => {
             const t = normalize(userText);
+            
+            for (const [key, data] of Object.entries(knowledgeBase)) {
+                if (includesAny(t, data.keywords)) {
+                    return { response: data.response, isAI: false };
+                }
+            }
+            return null;
+        };
 
-            if (includesAny(t, ['hello', 'hi', 'hey', 'kumusta', 'good morning', 'good afternoon'])) {
-                return "Hello! I'm a simple assistant for Francis's portfolio. Ask me about projects, skills, or how to contact.";
+        // AI Chat function using Hugging Face Inference API
+        const getAIResponse = async (userText) => {
+            try {
+                const response = await fetch('https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        inputs: `${AI_CONTEXT}\n\nUser: ${userText}\nChi:`,
+                        parameters: {
+                            max_length: 150,
+                            temperature: 0.7,
+                            top_p: 0.9,
+                        }
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('AI API request failed');
+                }
+
+                const data = await response.json();
+                let aiResponse = data[0]?.generated_text || '';
+                
+                // Clean up the response - remove the context and keep only Chi's response
+                const chiIndex = aiResponse.lastIndexOf('Chi:');
+                if (chiIndex !== -1) {
+                    aiResponse = aiResponse.substring(chiIndex + 4).trim();
+                }
+                
+                // If response is too long or empty, use fallback
+                if (aiResponse.length > 200 || aiResponse.length < 2) {
+                    return null;
+                }
+                
+                return aiResponse;
+            } catch (error) {
+                console.log('AI API error:', error);
+                return null;
+            }
+        };
+
+        const botReply = async (userText) => {
+            // First, try to find a matching response from knowledge base
+            const knowledgeMatch = findKnowledgeResponse(userText);
+            if (knowledgeMatch) {
+                return knowledgeMatch;
             }
 
-            if (includesAny(t, ['who are you', 'about you', 'about me', 'who is francis', 'introduce'])) {
-                return "Francis G. Tadije is a 23-year-old IT student at the University of Eastern Pangasinan, passionate about tech and building useful software.";
+            // If no match and AI is enabled, try AI
+            if (USE_AI) {
+                const aiResponse = await getAIResponse(userText);
+                if (aiResponse) {
+                    return { response: aiResponse, isAI: true };
+                }
             }
 
-            if (includesAny(t, ['project', 'portfolio', 'work', 'recent'])) {
-                return "You can view projects in the Projects section. Try the 'My Portfolio' project link for a live demo.";
-            }
-
-            if (includesAny(t, ['skill', 'tech', 'technology', 'stack', 'language'])) {
-                return "Core skills include HTML, CSS, JavaScript, and Python, plus soft skills like communication, problem solving, and leadership.";
-            }
-
-            if (includesAny(t, ['contact', 'email', 'phone', 'call', 'reach', 'message'])) {
-                return "Contact details: Email: francistadije0601@gmail.com | Phone: +63 9101132283. You can also use the Contact form on this page.";
-            }
-
-            if (includesAny(t, ['facebook', 'github', 'instagram', 'tiktok', 'social'])) {
-                return "Socials: GitHub @ francistadije0601-alt, Facebook: francis.tadije, Instagram: _franzz.rar, plus TikTok linked in Contact.";
-            }
-
-            if (includesAny(t, ['where', 'location', 'based'])) {
-                return "Based in Banaur, Laoac, Pangasinan.";
-            }
-
-            if (includesAny(t, ['experience', 'years', 'clients'])) {
-                return "No Experience.";
-            }
-
-            return "I didn't quite get that. You can ask about: projects, skills, contact info, socials, or location.";
+            // Fallback response
+            return { 
+                response: "I'm not sure about that. Try asking about: projects, skills, contact, education, location, or availability! I can help you learn more about Francis.", 
+                isAI: false 
+            };
         };
 
         // Welcome message
         if (messages && !messages.hasChildNodes()) {
-            appendMessage('bot', "Hi my name is Chi how can i help you? Try asking: 'What are your skills?' or 'How can I contact you?'");
+            appendMessage('bot', "Hi! I'm Chi, Francis's AI assistant. Ask me anything about his skills, projects, education, or how to contact him!");
         }
 
-        form && form.addEventListener('submit', (e) => {
+        form && form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = (input && input.value.trim()) || '';
             if (!text) return;
@@ -337,10 +511,11 @@ document.addEventListener('DOMContentLoaded', () => {
             messages.appendChild(typing);
             scrollToBottom();
 
-            setTimeout(() => {
-                typing.remove();
-                appendMessage('bot', botReply(text));
-            }, Math.min(1200, Math.max(300, text.length * 30)));
+            // Get bot response (may be async for AI)
+            const botResponse = await botReply(text);
+            
+            typing.remove();
+            appendMessage('bot', botResponse.response, botResponse.isAI);
         });
     })();
 
