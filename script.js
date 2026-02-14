@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (includesAny(t, ['experience', 'years', 'clients'])) {
-                return "Experience highlights: 5+ years, 50+ projects completed, 30+ happy clients (as shown in About).";
+                return "No Experience.";
             }
 
             return "I didn't quite get that. You can ask about: projects, skills, contact info, socials, or location.";
@@ -345,4 +345,125 @@ document.addEventListener('DOMContentLoaded', () => {
     })();
 
     console.log('Portfolio website loaded successfully!');
+});
+
+// ================================
+// GitHub API Integration
+// ================================
+const GITHUB_USERNAME = 'francistadije0601-alt';
+const GITHUB_API_BASE = 'https://api.github.com';
+
+async function fetchGitHubData() {
+    try {
+        // Fetch user profile data
+        const userResponse = await fetch(`${GITHUB_API_BASE}/users/${GITHUB_USERNAME}`);
+        if (!userResponse.ok) throw new Error('Failed to fetch GitHub user data');
+        const userData = await userResponse.json();
+
+        // Update GitHub stats
+        document.getElementById('publicRepos').textContent = userData.public_repos || 0;
+        document.getElementById('publicGists').textContent = userData.public_gists || 0;
+        document.getElementById('followers').textContent = userData.followers || 0;
+        document.getElementById('following').textContent = userData.following || 0;
+
+        // Fetch repositories (sorted by updated date, max 6)
+        const reposResponse = await fetch(
+            `${GITHUB_API_BASE}/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=6`
+        );
+        if (!reposResponse.ok) throw new Error('Failed to fetch GitHub repositories');
+        const repos = await reposResponse.json();
+
+        // Display repositories
+        displayGitHubProjects(repos);
+
+    } catch (error) {
+        console.error('GitHub API Error:', error);
+        displayGitHubError(error.message);
+    }
+}
+
+function displayGitHubProjects(repos) {
+    const container = document.getElementById('githubProjects');
+    
+    if (!repos || repos.length === 0) {
+        container.innerHTML = `
+            <div class="github-loading">
+                <i class="fas fa-folder-open"></i>
+                <p>No public repositories found</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = repos.map(repo => {
+        const language = repo.language || 'Code';
+        const languageClass = getLanguageClass(language);
+        
+        return `
+            <div class="github-project-card">
+                <div class="github-project-header">
+                    <h3 class="github-project-name">
+                        <a href="${repo.html_url}" target="_blank" rel="noopener noreferrer">
+                            ${repo.name}
+                        </a>
+                    </h3>
+                    <span class="github-project-visibility">${repo.visibility}</span>
+                </div>
+                <p class="github-project-description">${repo.description || 'No description available'}</p>
+                <div class="github-project-stats">
+                    <div class="github-project-stat">
+                        <i class="fas fa-star"></i>
+                        <span>${repo.stargazers_count}</span>
+                    </div>
+                    <div class="github-project-stat">
+                        <i class="fas fa-code-branch"></i>
+                        <span>${repo.forks_count}</span>
+                    </div>
+                    <div class="github-project-language">
+                        <span class="language-dot ${languageClass}"></span>
+                        <span>${language}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function displayGitHubError(message) {
+    const container = document.getElementById('githubProjects');
+    container.innerHTML = `
+        <div class="github-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>Failed to load GitHub repositories</p>
+            <small>${message}</small>
+        </div>
+    `;
+}
+
+function getLanguageClass(language) {
+    const languageMap = {
+        'JavaScript': 'javascript',
+        'Python': 'python',
+        'HTML': 'html',
+        'CSS': 'css',
+        'Java': 'java',
+        'TypeScript': 'typescript',
+        'C#': 'csharp',
+        'C++': 'cpp',
+        'PHP': 'php',
+        'Ruby': 'ruby',
+        'Go': 'go',
+        'Rust': 'rust',
+        'Swift': 'swift',
+        'Kotlin': 'kotlin'
+    };
+    return languageMap[language] || 'default';
+}
+
+// Initialize GitHub section when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Only run if GitHub section exists
+    if (document.getElementById('githubProjects')) {
+        fetchGitHubData();
+    }
 });
