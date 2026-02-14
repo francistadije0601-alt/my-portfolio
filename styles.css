@@ -468,6 +468,16 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 0.3;
 }
 
+/* About Image */
+.about-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+    position: relative;
+    z-index: 1;
+}
+
 .about-text h3 {
     font-size: 1.8rem;
     margin-bottom: 1.5rem;
